@@ -8,15 +8,16 @@ public class Main {
         List<Post> posts = new ArrayList<>();
 
         for (int i = 1; i <= 1_000_000; i++) {
-            int randomLikes = (int)(Math.random() * 101);
+            int randomLikes = (int)(Math.random() * Math.random() * 101);
             String randomId = UUID.randomUUID().toString();
             posts.add(new Post(randomId, randomLikes));
         }
+
         printList(getTop10(posts));
     }
 
      static List<Post> getTop10(List<Post> posts){
-        PriorityQueue<Post> postsQueue = new PriorityQueue<>(Comparator.comparing(Post::getLikesCount).reversed());
+        PriorityQueue<Post> postsQueue = new PriorityQueue<>(Comparator.comparing(Post::getLikesCount));
 
         for (Post post : posts) {
             if (postsQueue.size() < 10){
