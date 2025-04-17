@@ -1,9 +1,6 @@
 package com.example;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.*;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -11,19 +8,21 @@ import java.util.Locale;
 @Configuration
 public class DateConfig {
 
-    @Bean(name = "enBean")
+    @Bean(name = "localizedDateFormat")
     @Scope("prototype")
-    public SimpleDateFormat dateFormatEn() {
+    @Profile("en")
+    public SimpleDateFormat localizedDateFormatEn() {
         return new SimpleDateFormat("EEEE, d MMMM, yyyy", new Locale("en"));
     }
 
-    @Bean(name = "ruBean")
+    @Bean(name = "localizedDateFormat")
     @Scope("prototype")
-    public SimpleDateFormat dateFormatRu() {
+    @Profile("ru")
+    public SimpleDateFormat localizedDateFormatRu() {
         return new SimpleDateFormat("EEEE, d MMMM, yyyy", new Locale("ru"));
     }
 
-    @Bean(name = "standard")
+    @Bean(name = "standardDateFormat")
     @Primary
     @Scope("prototype")
     public SimpleDateFormat standardDateFormat() {

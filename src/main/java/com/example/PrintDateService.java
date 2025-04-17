@@ -1,27 +1,30 @@
 package com.example;
 
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 
+@Component
 public class PrintDateService {
+    private final SimpleDateFormat localizedDateFormat;
+    private final SimpleDateFormat standardDateFormat;
 
-    private final AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(DateConfig.class);
+    public PrintDateService(@Qualifier("localizedDateFormat") SimpleDateFormat localizedDateFormat,
+                            @Qualifier ("standardDateFormat") SimpleDateFormat standardDateFormat) {
+        this.localizedDateFormat = localizedDateFormat;
+        this.standardDateFormat = standardDateFormat;
+    }
 
-    public void today(Locale locale, Date date) {
-        SimpleDateFormat sdf = applicationContext.getBean("enBean", SimpleDateFormat.class);
+    public void today (Date date) {
+        System.out.println(localizedDateFormat.format(date));
+    }
 
-        if (locale.getLanguage().equalsIgnoreCase("ru")){
-            sdf = applicationContext.getBean("ruBean", SimpleDateFormat.class);
-        }
+    public void today_iso (Date date) {
+        System.out.println(standardDateFormat.format(date));
+    }
 
-        System.out.println(sdf.format(date));
-    };
 
-    public void today_iso(Date date) {
-        SimpleDateFormat sdf = applicationContext.getBean(SimpleDateFormat.class);
-        System.out.println(sdf.format(date));
-    };
 }

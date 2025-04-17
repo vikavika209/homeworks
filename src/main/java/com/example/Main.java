@@ -2,21 +2,16 @@ package com.example;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 
 public class Main {
     public static void main(String[] args) {
+        System.setProperty("spring.profiles.active", "ru");
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(DateConfig.class, PrintDateService.class);
 
-        PrintDateService printDateService = new PrintDateService();
+        PrintDateService printDateService = context.getBean(PrintDateService.class);
+        printDateService.today_iso(new Date());
+        printDateService.today(new Date());
 
-        Date currentDate = new Date();
-        Locale ruLocale = new Locale("ru");
-        Locale enLocale = new Locale("en");
-
-        printDateService.today_iso(currentDate);
-        printDateService.today(ruLocale, currentDate);
-        printDateService.today(enLocale, currentDate);
     }
 }
