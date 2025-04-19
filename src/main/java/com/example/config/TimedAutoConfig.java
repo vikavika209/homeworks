@@ -5,6 +5,7 @@ import com.example.utils.AnnotationScanner;
 import com.example.utils.ProxyFactory;
 import com.example.utils.TimeInterceptor;
 import com.example.processor.TimedBeanRegistrar;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
