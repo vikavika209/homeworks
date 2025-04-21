@@ -1,10 +1,14 @@
 package com.example.service;
 
 import com.example.entity.MethodMetricStat;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Service
 public class MetricStateService {
     private final Map<String, MethodMetricStat> methodMetricStatStorage = new ConcurrentHashMap<>();
 

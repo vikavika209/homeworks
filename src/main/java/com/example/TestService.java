@@ -1,8 +1,10 @@
 package com.example;
 
 import com.example.annotation.Timed;
+import org.springframework.stereotype.Component;
 
 @Timed
+@Component
 public class TestService {
     public void doSomething() {
         System.out.println(">> Выполняется TestService#doSomething");

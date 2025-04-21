@@ -2,11 +2,16 @@ package com.example.utils;
 
 import jakarta.annotation.PostConstruct;
 import net.sf.cglib.proxy.Enhancer;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Component
 public class ProxyFactory {
 
     private final TimeInterceptor timeInterceptor;
@@ -17,9 +22,9 @@ public class ProxyFactory {
         this.annotationScanner = annotationScanner;
     }
 
-    public  Set<Object> createProxy(String packageName){
+    public  Set<Object> createProxy(){
         Set<Object> proxiedObjects = new HashSet<>();
-        Set<Method> annotatedMethods = annotationScanner.getAnnotatedMethods(packageName);
+        Set<Method> annotatedMethods = annotationScanner.getAnnotatedMethods();
 
         if(!annotatedMethods.isEmpty()){
             Set<Class<?>> classes = annotatedMethods.stream()
@@ -38,8 +43,9 @@ public class ProxyFactory {
         return proxiedObjects;
     }
 
-    @PostConstruct
-    public void init() {
-        createProxy("com.example");
-    }
+    @EventListener(ContextRefreshedEvent.class)
+    public void init(){
+        Set<Object> objects = createProxy();
+        objects.forEach(p -> System.out.println("Создан прокси: " + p.getClass()));
+        }
 }

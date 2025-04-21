@@ -4,11 +4,13 @@ import com.example.entity.MethodMetricStat;
 import com.example.service.MetricStateService;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
+import org.springframework.stereotype.Component;
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+@Component
 public class TimeInterceptor implements MethodInterceptor {
     private final MetricStateService metricStateService;
 
