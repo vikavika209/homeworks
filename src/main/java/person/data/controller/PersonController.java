@@ -1,7 +1,9 @@
 package person.data.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,13 +19,13 @@ public class PersonController {
     private final PersonService personService;
 
     @PostMapping
-    public ResponseEntity<Person> createPerson(@RequestBody Person person) {
+    public ResponseEntity<Person> createPerson(@RequestBody @Valid PersonDTO person) {
         Person created = personService.save(person);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping
-    public ResponseEntity<Person> updatePerson(@RequestBody Person person) {
+    public ResponseEntity<Person> updatePerson(@RequestBody @Valid PersonDTO person) {
         Person updated = personService.update(person);
         return ResponseEntity.ok(updated);
     }
@@ -35,9 +37,11 @@ public class PersonController {
 
     @GetMapping
     public ResponseEntity<Page<PersonDTO>> getAllPersons(
-            @RequestParam(required = false) String region) {
+            @RequestParam(required = false) String region,
+            Pageable pageable
+    ) {
 
-        Page<PersonDTO> page = personService.findAllByRegion(region);
+        Page<PersonDTO> page = personService.findAllByRegion(region, pageable);
         return ResponseEntity.ok(page);
     }
 
@@ -47,6 +51,12 @@ public class PersonController {
             @RequestParam String passport) {
 
         boolean isValid = personService.verifyIdentity(name, passport);
-        return ResponseEntity.ok(isValid);
+
+        if (isValid) {
+            return ResponseEntity.ok(true);
+        }
+        else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
+        }
     }
 }

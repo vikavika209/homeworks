@@ -7,22 +7,22 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import person.data.dto.PersonDTO;
 import person.data.entity.Person;
+import person.data.exeption.PassportAlreadyExistException;
+import person.data.service.IdentityDocumentService;
 import person.data.service.PersonService;
 
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(PersonController.class)
 class PersonControllerTest {
@@ -33,6 +33,9 @@ class PersonControllerTest {
     @SuppressWarnings("removal")
     @MockBean
     private PersonService personService;
+    @SuppressWarnings("removal")
+    @MockBean
+    private IdentityDocumentService identityDocumentService;
 
     private Person testPerson;
     private PersonDTO personDTO;
@@ -42,7 +45,7 @@ class PersonControllerTest {
         testPerson = new Person();
         testPerson.setId(1);
         testPerson.setFullName("Иванов Иван");
-        testPerson.setPassportData("AB123456");
+        testPerson.setPassportData("123456");
 
         personDTO = new PersonDTO();
         personDTO.setId(1);
@@ -51,14 +54,14 @@ class PersonControllerTest {
 
     @Test
     void createPerson_shouldReturnCreatedPerson() throws Exception {
-        when(personService.save(any(Person.class))).thenReturn(testPerson);
+        when(personService.save(any(PersonDTO.class))).thenReturn(testPerson);
 
         mockMvc.perform(post("/person")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                             {
                               "fullName": "Иванов Иван",
-                              "passportData": "AB123456"
+                              "passportData": "123456"
                             }
                             """))
                 .andExpect(status().isCreated())
@@ -68,7 +71,7 @@ class PersonControllerTest {
 
     @Test
     void updatePerson_shouldReturnUpdatedPerson() throws Exception {
-        when(personService.update(any(Person.class))).thenReturn(testPerson);
+        when(personService.update(any(PersonDTO.class))).thenReturn(testPerson);
 
         mockMvc.perform(put("/person")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -76,7 +79,7 @@ class PersonControllerTest {
                             {
                               "id": 1,
                               "fullName": "Иванов Иван",
-                              "passportData": "AB123456"
+                              "passportData": "123456"
                             }
                             """))
                 .andExpect(status().isOk())
@@ -96,8 +99,9 @@ class PersonControllerTest {
 
     @Test
     void getAllPersons_shouldReturnPageOfDTOs() throws Exception {
+        Pageable pageable = PageRequest.of(0, 10);
         Page<PersonDTO> page = new PageImpl<>(List.of(personDTO));
-        when(personService.findAllByRegion(any())).thenReturn(page);
+        when(personService.findAllByRegion(any(), any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/person?region=Москва"))
                 .andExpect(status().isOk())
@@ -113,5 +117,21 @@ class PersonControllerTest {
                         .param("passport", "AB123456"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("true"));
+    }
+
+    @Test
+    void createPersonWithExistingPassport() throws Exception {
+        when(personService.save(any())).thenThrow(new PassportAlreadyExistException("123456"));
+
+        mockMvc.perform(post("/person")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                            {
+                              "id": 1,
+                              "fullName": "Иванов Иван",
+                              "passportData": "123456"
+                            }
+                            """))
+                .andExpect(status().isConflict());
     }
 }

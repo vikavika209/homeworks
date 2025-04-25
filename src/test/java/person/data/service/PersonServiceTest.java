@@ -6,8 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import person.data.convertor.PersonConvertor;
+import person.data.mapper.PersonMapper;
 import person.data.dto.PersonDTO;
 import person.data.entity.Address;
 import person.data.entity.Contact;
@@ -15,14 +14,14 @@ import person.data.entity.IdentityDocument;
 import person.data.entity.Person;
 import person.data.repository.PersonRepository;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PersonServiceTest {
@@ -32,12 +31,13 @@ class PersonServiceTest {
     @Mock private IdentityDocumentService identityDocumentService;
     @Mock private ContactService contactService;
     @Mock private AddressService addressService;
-    @Mock private PersonConvertor personConvertor;
+    @Mock private PersonMapper personMapper;
 
     @InjectMocks
     private PersonService personService;
 
     private Person testPerson;
+    private PersonDTO testPersonDTO;
 
     @BeforeEach
     void setUp() {
@@ -45,6 +45,11 @@ class PersonServiceTest {
         testPerson.setId(1);
         testPerson.setFullName("Иванов Иван Иванович");
         testPerson.setPassportData("AB123456");
+
+        testPersonDTO = new PersonDTO();
+        testPersonDTO.setId(1);
+        testPersonDTO.setFullName("Иванов Иван Иванович");
+        testPersonDTO.setPassportData("AB123456");
 
         IdentityDocument doc = new IdentityDocument();
         doc.setId(1);
@@ -62,38 +67,34 @@ class PersonServiceTest {
         address.setId(1);
         address.setFullAddress("г. Москва, ул. Пушкина, д.1");
         address.setRegion("Москва");
-        address.setPersons(List.of(testPerson));
+        address.setPersons(new ArrayList<>(List.of(testPerson)));
 
         testPerson.setDocuments(List.of(doc));
         testPerson.setContacts(List.of(contact));
         testPerson.setAddresses(List.of(address));
+
+        when(personMapper.toDTO(testPerson)).thenReturn(testPersonDTO);
+
+        testPersonDTO = personMapper.toDTO(testPerson);
     }
 
     @Test
     void save_shouldSavePersonAndCallDependencies() {
-        when(personRepository.save(testPerson)).thenReturn(testPerson);
-        when(identityDocumentService.findAll()).thenReturn(Page.empty());
-        when(contactService.findAll()).thenReturn(Page.empty());
-        when(addressService.findAll()).thenReturn(Page.empty());
+        when(personRepository.save(any(Person.class))).thenReturn(testPerson);
+        when(personMapper.toEntity(testPersonDTO)).thenReturn(testPerson);
 
-        Person saved = personService.save(testPerson);
+        Person saved = personService.save(testPersonDTO);
 
         assertNotNull(saved);
         verify(personRepository).save(testPerson);
-        verify(identityDocumentService).save(any());
-        verify(contactService).save(any());
-        verify(addressService).save(any());
     }
 
     @Test
     void update_shouldSaveIfPersonNotFound() {
-        when(personRepository.findById(testPerson.getId())).thenReturn(Optional.empty());
         when(personRepository.save(testPerson)).thenReturn(testPerson);
-        when(identityDocumentService.findAll()).thenReturn(Page.empty());
-        when(contactService.findAll()).thenReturn(Page.empty());
-        when(addressService.findAll()).thenReturn(Page.empty());
+        when(personMapper.toEntity(testPersonDTO)).thenReturn(testPerson);
 
-        Person result = personService.update(testPerson);
+        Person result = personService.update(testPersonDTO);
 
         assertEquals(testPerson, result);
         verify(personRepository).save(testPerson);
@@ -102,12 +103,10 @@ class PersonServiceTest {
     @Test
     void findById_shouldReturnConvertedPerson() {
         when(personRepository.findById(1)).thenReturn(Optional.of(testPerson));
-        PersonDTO dto = new PersonDTO();
-        when(personConvertor.personToDTO(testPerson)).thenReturn(dto);
 
         PersonDTO result = personService.findById(1);
 
-        assertEquals(dto, result);
+        assertEquals(testPerson.getFullName(), result.getFullName());
         verify(personRepository).findById(1);
     }
 
@@ -142,4 +141,6 @@ class PersonServiceTest {
 
         assertFalse(result);
     }
+
+
 }

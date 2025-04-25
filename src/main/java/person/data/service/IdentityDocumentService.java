@@ -1,38 +1,34 @@
 package person.data.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import person.data.entity.Contact;
 import person.data.entity.IdentityDocument;
 import person.data.entity.Person;
 import person.data.repository.IdentityDocumentRepository;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Slf4j
 public class IdentityDocumentService {
     private final IdentityDocumentRepository identityDocumentRepository;
 
-    @Autowired
     public IdentityDocumentService(IdentityDocumentRepository identityDocumentRepository) {
         this.identityDocumentRepository = identityDocumentRepository;
     }
 
+    @Transactional
     public IdentityDocument save(IdentityDocument identityDocument) {
-        try {
             IdentityDocument savedIdentityDocument = identityDocumentRepository.save(identityDocument);
             log.info("Сохранен новый документ: {}", identityDocument);
             return savedIdentityDocument;
-        }catch (Exception e) {
-            log.error("Ошибка: {} при сохранении документа: {}", e.getMessage(), identityDocument);
-            throw new RuntimeException("Ошибка при сохранении документа: " + identityDocument);
-        }
     }
 
     public Page<IdentityDocument> findAll() {
@@ -45,16 +41,17 @@ public class IdentityDocumentService {
     @Transactional
     public IdentityDocument update(IdentityDocument identityDocument) {
         int identityDocumentId = identityDocument.getId();
-        IdentityDocument foundIdentityDocument = findById(identityDocumentId);
-        if (foundIdentityDocument != null) {
+        IdentityDocument foundIdentityDocument = identityDocumentRepository.findByIdForUpdate(identityDocumentId).orElse(null);
+
+        if (foundIdentityDocument == null) {
             log.info("Документ не найден: {}", identityDocument);
-            foundIdentityDocument = save(identityDocument);
+            foundIdentityDocument = identityDocumentRepository.save(identityDocument);
             log.info("Документ создан: {}", identityDocument);
             return foundIdentityDocument;
         }
         else {
             log.info("Документ: {} обновляется", identityDocument);
-            IdentityDocument updatedIdentityDocument = identityDocumentRepository.updateById(identityDocument);
+            IdentityDocument updatedIdentityDocument = identityDocumentRepository.save(identityDocument);
             log.info("Документ обновлён: ", updatedIdentityDocument);
             return updatedIdentityDocument;
         }
@@ -72,13 +69,6 @@ public class IdentityDocumentService {
     }
 
     public void delete(int id) {
-        IdentityDocument identityDocument = identityDocumentRepository.findById(id).orElse(null);
-        if (identityDocument == null) {
-            log.info("Документ для удаления с id: {} не найден.", id);
-        }
-        else {
-            log.info("Удаление документа с id: {}", id);
-        }
         identityDocumentRepository.deleteById(id);
     }
 
@@ -91,5 +81,13 @@ public class IdentityDocumentService {
             log.info("Документы в кол-ве: {} для гражданина с id: {} найдены.", identityDocuments.size(), person.getId());
         }
         return identityDocuments;
+    }
+
+    public Set<String> getAllDocumentNumbers(){
+        return new HashSet<>(identityDocumentRepository.findAllDocumentNumbers());
+    }
+
+    public boolean existsByDocumentNumber (String documentNumber) {
+        return identityDocumentRepository.existsByNumber(documentNumber);
     }
 }

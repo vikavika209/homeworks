@@ -1,11 +1,15 @@
 package person.data.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -18,9 +22,10 @@ public class Address {
     @Id
     @GeneratedValue
     private int id;
+    @NotBlank(message = "Необходимо указать полный адрес.")
     private String fullAddress;
+    @NotBlank(message = "Необходимо указать регион.")
     private String region;
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "persons_id")
-    private List<Person> persons;
+    @ManyToMany(mappedBy = "addresses", fetch = FetchType.LAZY)
+    private List<Person> persons = new ArrayList<>();
 }
