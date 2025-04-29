@@ -7,7 +7,7 @@ import person.data.entity.IdentityDocument;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper
 public interface IdentityDocumentMapper {
     IdentityDocumentDTO toDTO(IdentityDocument document);
     IdentityDocument toEntity(IdentityDocumentDTO documentDTO);

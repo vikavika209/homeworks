@@ -1,13 +1,12 @@
 package person.data.mapper;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import person.data.dto.ContactDTO;
 import person.data.entity.Contact;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper
 public interface ContactMapper {
     ContactDTO toDTO(Contact contact);
     Contact toEntity(ContactDTO contactDTO);

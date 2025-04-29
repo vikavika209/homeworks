@@ -1,6 +1,7 @@
 package madical_service.controller;
 
 import madical_service.entity.Vaccination;
+import madical_service.exception.PersonServiceResponceException;
 import madical_service.service.FileReaderService;
 import madical_service.service.VaccinationService;
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,7 @@ class VaccinationControllerTest {
                         .param("document", "1234567890"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
+
     }
 
     @Test

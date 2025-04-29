@@ -5,6 +5,7 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import person.data.dto.PersonDTO;
+import person.data.entity.IdentityDocument;
 import person.data.entity.Person;
 import person.data.exeption.PassportAlreadyExistException;
 import person.data.mapper.PersonMapper;
@@ -38,6 +39,10 @@ public class PersonService {
             person.getAddresses().forEach(address -> address.getPersons().add(person));
 
             personRepository.save(person);
+
+            IdentityDocument passport = new IdentityDocument("Паспорт", person.getPassportData(), person);
+            identityDocumentService.save(passport);
+            person.getDocuments().add(passport);
 
             log.info("Сохранен новый гражданин: {}", person);
 

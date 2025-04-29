@@ -23,6 +23,6 @@ public class Contact {
     @Pattern(regexp = "\\d{10,15}", message = "Телефон должен содержать от 10 до 15 цифр")
     private String number;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "persons_id", nullable = false)
+    @JoinColumn(name = "persons_id")
     private Person person;
 }

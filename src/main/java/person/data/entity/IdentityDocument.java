@@ -25,6 +25,12 @@ public class IdentityDocument {
     @Pattern(regexp = "\\d+", message = "Номер документа должен состоять из цифр.")
     private String number;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "persons_id", nullable = false)
+    @JoinColumn(name = "persons_id")
     private Person person;
+
+    public IdentityDocument(String name, String number, Person person) {
+        this.name = name;
+        this.number = number;
+        this.person = person;
+    }
 }

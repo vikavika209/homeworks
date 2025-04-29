@@ -13,8 +13,6 @@ import java.util.List;
 
 @Service
 @Slf4j
-@Getter
-@Setter
 public class VaccinationService {
     private final VaccinationRepository vaccinationRepository;
 

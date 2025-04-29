@@ -12,6 +12,7 @@ import person.data.entity.Address;
 import person.data.entity.Contact;
 import person.data.entity.IdentityDocument;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -27,11 +28,11 @@ public class PersonDTO {
     @Pattern(regexp = "\\d+", message = "Паспортные данные должны состоять из цифр.")
     private String passportData;
     @Valid
-    private List<IdentityDocument> documents;
+    private List<IdentityDocumentDTO> documents = new ArrayList<>();
     @Size(min = 1, message = "Список контактов не может быть пустым.")
     @Valid
-    private List<Contact> contacts;
+    private List<ContactDTO> contacts = new ArrayList<>();
     @Size(min = 1, message = "Список адресов не может быть пустым.")
     @Valid
-    private List<Address> addresses;
+    private List<AddressDTO> addresses =  new ArrayList<>();
 }

@@ -13,8 +13,6 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-@Getter
-@Setter
 public class VaccineService {
     private final VaccineRepository vaccineRepository;
 

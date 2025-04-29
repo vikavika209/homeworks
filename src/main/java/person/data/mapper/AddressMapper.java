@@ -7,7 +7,7 @@ import person.data.entity.Address;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper
 public interface AddressMapper {
     AddressDTO toDTO(Address address);
     Address toEntity(AddressDTO addressDTO);
