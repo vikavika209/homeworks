@@ -16,7 +16,13 @@ public class PersonClientTest {
 
     @Test
     void testVerifyPerson() {
-        ResponseEntity<Boolean> isValid = personClient.verifyPerson("Иванов Иван", "1234567898");
+        ResponseEntity<Boolean> isValid = personClient.verifyPerson("Иванов Иван Иванович", "1234567890");
+        Assertions.assertTrue(Boolean.TRUE.equals(isValid.getBody()));
+    }
+
+    @Test
+    void testNotVerifyPerson() {
+        ResponseEntity<Boolean> isValid = personClient.verifyPerson("Петров Иван Иванович", "1234567890");
         Assertions.assertFalse(Boolean.TRUE.equals(isValid.getBody()));
     }
 }

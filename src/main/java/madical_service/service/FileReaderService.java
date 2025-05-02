@@ -1,9 +1,8 @@
 package madical_service.service;
 
 import com.opencsv.CSVReader;
+import feign.FeignException;
 import feign.RetryableException;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import madical_service.client.PersonClient;
 import madical_service.dto.VaccinationFileData;
@@ -18,9 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.multipart.MultipartFile;
+import person.data.dto.PersonDTO;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -47,7 +45,7 @@ public class FileReaderService {
     }
 
     @Transactional
-    public void getVaccinationInfo(MultipartFile file) {
+    public List<VaccinationFileData> getVaccinationInfo(MultipartFile file) {
         List<VaccinationFileData> allVaccinations = parseTheFile(file);
         List<Vaccination> vaccinationBatch = new ArrayList<>();
         int batchSize = 50;
@@ -79,6 +77,7 @@ public class FileReaderService {
         if (!vaccinationBatch.isEmpty()) {
             vaccinationService.saveAll(vaccinationBatch);
         }
+        return allVaccinations;
     }
 
     private VaccinationPoint getOrCreateVaccinationPoint(String pointCertificate, String pointName, String pointAddress){

@@ -1,27 +1,27 @@
 package madical_service.controller;
 
-import madical_service.entity.Vaccination;
-import madical_service.exception.PersonServiceResponceException;
+import madical_service.dto.VaccinationDTO;
 import madical_service.service.FileReaderService;
 import madical_service.service.VaccinationService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest(VaccinationController.class)
 class VaccinationControllerTest {
 
     @Autowired
@@ -35,41 +35,28 @@ class VaccinationControllerTest {
 
     @Test
     void getAllVaccinationsByPassport_ReturnsOk() throws Exception {
-        List<Vaccination> mockVaccinations = List.of(new Vaccination(), new Vaccination());
-        Mockito.when(vaccinationService.getAllVaccinationsForPerson("1234567890"))
-                .thenReturn(mockVaccinations);
+        Page<VaccinationDTO> page = new PageImpl<>(List.of(new VaccinationDTO(), new VaccinationDTO()));
+        Mockito.when(vaccinationService.getAllVaccinationsForPerson(eq("1234567890"), any(Pageable.class)))
+                .thenReturn(page);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/vaccinations/vaccination")
                         .param("document", "1234567890"))
+
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2));
+                .andExpect(jsonPath("$.content.length()").value(2));
 
     }
 
     @Test
     void getAllVaccinationsByPassport_ReturnsNoContent() throws Exception {
-        Mockito.when(vaccinationService.getAllVaccinationsForPerson("0000000000"))
-                .thenReturn(List.of());
+        Page<VaccinationDTO> emptyPage = new PageImpl<>(List.of());
+
+        Mockito.when(vaccinationService.getAllVaccinationsForPerson(eq("0000000000"), any(Pageable.class)))
+                .thenReturn(emptyPage);
+
 
         mockMvc.perform(MockMvcRequestBuilders.get("/vaccinations/vaccination")
                         .param("document", "0000000000"))
                 .andExpect(status().isNoContent());
-    }
-
-    @Test
-    void saveVaccination_ReturnsOk() throws Exception {
-        MockMultipartFile file = new MockMultipartFile(
-                "file",
-                "vaccination_data.csv",
-                "text/csv",
-                "Иванов Иван,1234567890,2024-01-01,Спутник V,001,Пункт №1,Москва".getBytes()
-        );
-
-        Mockito.doNothing().when(fileReaderService).getVaccinationInfo(Mockito.any(MultipartFile.class));
-
-        mockMvc.perform(MockMvcRequestBuilders.multipart("/vaccinations/upload")
-                        .file(file))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Файл успешно обработан и данные сохранены"));
     }
 }

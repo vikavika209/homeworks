@@ -1,11 +1,13 @@
 package person.data.service;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import person.data.exeption.PersonNotFoundException;
 import person.data.mapper.PersonMapper;
 import person.data.dto.PersonDTO;
 import person.data.entity.Address;
@@ -14,10 +16,7 @@ import person.data.entity.IdentityDocument;
 import person.data.entity.Person;
 import person.data.repository.PersonRepository;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,12 +43,12 @@ class PersonServiceTest {
         testPerson = new Person();
         testPerson.setId(1);
         testPerson.setFullName("Иванов Иван Иванович");
-        testPerson.setPassportData("AB123456");
+        testPerson.setPassportData("123456");
 
         testPersonDTO = new PersonDTO();
         testPersonDTO.setId(1);
         testPersonDTO.setFullName("Иванов Иван Иванович");
-        testPersonDTO.setPassportData("AB123456");
+        testPersonDTO.setPassportData("123456");
 
         IdentityDocument doc = new IdentityDocument();
         doc.setId(1);
@@ -69,9 +68,9 @@ class PersonServiceTest {
         address.setRegion("Москва");
         address.setPersons(new ArrayList<>(List.of(testPerson)));
 
-        testPerson.setDocuments(List.of(doc));
-        testPerson.setContacts(List.of(contact));
-        testPerson.setAddresses(List.of(address));
+        testPerson.setDocuments(new ArrayList<>(List.of(doc)));
+        testPerson.setContacts(new ArrayList<>(List.of(contact)));
+        testPerson.setAddresses(new ArrayList<>(List.of(address)));
 
         when(personMapper.toDTO(testPerson)).thenReturn(testPersonDTO);
 
@@ -81,23 +80,33 @@ class PersonServiceTest {
     @Test
     void save_shouldSavePersonAndCallDependencies() {
         when(personRepository.save(any(Person.class))).thenReturn(testPerson);
-        when(personMapper.toEntity(testPersonDTO)).thenReturn(testPerson);
+        when(personMapper.toDTO(testPerson)).thenReturn(testPersonDTO);
 
-        Person saved = personService.save(testPersonDTO);
+        PersonDTO saved = personService.save(testPerson);
 
         assertNotNull(saved);
         verify(personRepository).save(testPerson);
     }
 
     @Test
-    void update_shouldSaveIfPersonNotFound() {
-        when(personRepository.save(testPerson)).thenReturn(testPerson);
-        when(personMapper.toEntity(testPersonDTO)).thenReturn(testPerson);
+    void update_shouldUpdate() {
+        when(personRepository.findByIdForUpdate(testPerson.getId())).thenReturn(Optional.of(testPerson));
+        when(personRepository.save(any(Person.class))).thenReturn(testPerson);
 
-        Person result = personService.update(testPersonDTO);
+        PersonDTO saved = personService.update(testPerson);
 
-        assertEquals(testPerson, result);
+        assertNotNull(saved);
         verify(personRepository).save(testPerson);
+        assertEquals(saved.getId(), testPerson.getId());
+        assertEquals(saved.getFullName(), testPerson.getFullName());
+        assertEquals(saved.getPassportData(), testPerson.getPassportData());
+    }
+
+    @Test
+    void update_shouldSaveIfPersonNotFound() {
+        when(personRepository.findByIdForUpdate(testPerson.getId())).thenReturn(Optional.empty());
+
+        Assertions.assertThrows(PersonNotFoundException.class, () -> personService.update(testPerson));
     }
 
     @Test
@@ -142,5 +151,28 @@ class PersonServiceTest {
         assertFalse(result);
     }
 
+    @Test
+    void getByPassport_whenPersonExists_returnsMap() {
 
+        when(personRepository.findByPassportData("123456"))
+                .thenReturn(Optional.of(testPerson));
+
+        Map<String, String> result = personService.getByPassport("123456");
+
+        assertNotNull(result);
+        assertEquals("Иванов Иван Иванович", result.get("Имя"));
+        assertEquals("123456", result.get("Паспорт"));
+    }
+
+    @Test
+    void getByPassport_whenPersonNotExists_trowPersonNotFoundException() {
+
+        when(personRepository.findByPassportData("123456"))
+                .thenReturn(Optional.empty());
+
+        Assertions.assertThrowsExactly(
+                PersonNotFoundException.class,
+                () -> personService.getByPassport("123456")
+        );
+    }
 }

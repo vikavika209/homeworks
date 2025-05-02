@@ -43,4 +43,8 @@ public class Vaccination {
     @JoinColumn(name = "vaccination_point_certificate")
     @NotNull(message = "Не указан пункт вакцинации")
     private VaccinationPoint vaccinationPoint;
+
+    @Column(nullable = false)
+    private boolean isSentToKafka = false;
+
 }

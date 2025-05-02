@@ -1,5 +1,6 @@
 package madical_service.client;
 
+import madical_service.dto.VaccinationFileData;
 import madical_service.exception.FileReadingException;
 import madical_service.service.FileReaderService;
 import org.junit.jupiter.api.Assertions;
@@ -12,6 +13,11 @@ import org.springframework.test.context.ActiveProfiles;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -32,7 +38,10 @@ public class FileReaderServiceTest {
                 new FileInputStream(file)
         );
 
-        fileReaderService.getVaccinationInfo(multipartFile);
+        List<VaccinationFileData> vaccinationsFromFile = fileReaderService.getVaccinationInfo(multipartFile);
+
+        Assertions.assertEquals(2, vaccinationsFromFile.size());
+
     }
 
     @Test

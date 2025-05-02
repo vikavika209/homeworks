@@ -11,6 +11,8 @@ import person.data.dto.PersonDTO;
 import person.data.entity.Person;
 import person.data.service.PersonService;
 
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/person")
@@ -19,14 +21,14 @@ public class PersonController {
     private final PersonService personService;
 
     @PostMapping
-    public ResponseEntity<Person> createPerson(@RequestBody @Valid PersonDTO person) {
-        Person created = personService.save(person);
+    public ResponseEntity<PersonDTO> createPerson(@RequestBody @Valid Person person) {
+        PersonDTO created = personService.save(person);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping
-    public ResponseEntity<Person> updatePerson(@RequestBody @Valid PersonDTO person) {
-        Person updated = personService.update(person);
+    public ResponseEntity<PersonDTO> updatePerson(@RequestBody @Valid Person person) {
+        PersonDTO updated = personService.update(person);
         return ResponseEntity.ok(updated);
     }
 
@@ -52,11 +54,13 @@ public class PersonController {
 
         boolean isValid = personService.verifyIdentity(name, passport);
 
-        if (isValid) {
-            return ResponseEntity.ok(true);
-        }
-        else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
-        }
+        return ResponseEntity.status(HttpStatus.OK).body(isValid);
+
+    }
+
+    @GetMapping("/passport/{passport}")
+    public ResponseEntity<Map<String, String>> getPersonByPassport(@PathVariable String passport) {
+        Map<String, String> personDTO = personService.getByPassport(passport);
+        return ResponseEntity.ok(personDTO);
     }
 }

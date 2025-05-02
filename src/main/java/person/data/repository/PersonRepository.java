@@ -19,4 +19,5 @@ public interface PersonRepository extends JpaRepository<Person, Integer> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Person p WHERE p.id = :id")
     Optional<Person> findByIdForUpdate(@Param("id") int id);
+    Optional<Person> findByPassportData(String passportData);
 }

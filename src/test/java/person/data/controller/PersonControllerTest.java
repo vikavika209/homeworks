@@ -12,12 +12,19 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import person.data.dto.PersonDTO;
+import person.data.entity.Address;
+import person.data.entity.Contact;
+import person.data.entity.IdentityDocument;
 import person.data.entity.Person;
 import person.data.exeption.PassportAlreadyExistException;
+import person.data.exeption.PersonNotFoundException;
 import person.data.service.IdentityDocumentService;
 import person.data.service.PersonService;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -46,41 +53,96 @@ class PersonControllerTest {
         testPerson.setId(1);
         testPerson.setFullName("Иванов Иван");
         testPerson.setPassportData("123456");
+        testPerson.setAddresses(Collections.singletonList(new Address()));
+        testPerson.setContacts(Collections.singletonList(new Contact()));
 
         personDTO = new PersonDTO();
         personDTO.setId(1);
         personDTO.setFullName("Иванов Иван");
+
+        Contact contact = new Contact();
+        contact.setType("PHONE");
+        contact.setNumber("+79001234567");
+
+        Address address = new Address();
+        address.setRegion("Москва");
+        address.setFullAddress("Тверская, 1");
+
+        IdentityDocument doc = new IdentityDocument();
+        doc.setName("Паспорт");
+        doc.setNumber("1234567890");
+
     }
 
     @Test
     void createPerson_shouldReturnCreatedPerson() throws Exception {
-        when(personService.save(any(PersonDTO.class))).thenReturn(testPerson);
+        when(personService.save(any(Person.class))).thenReturn(personDTO);
 
         mockMvc.perform(post("/person")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                            {
-                              "fullName": "Иванов Иван",
-                              "passportData": "123456"
-                            }
+
+                                {
+                               "id": 1,
+                               "fullName": "Иванов Иван",
+                               "passportData": "123456",
+                               "documents": [
+                                 {
+                                   "name": "Паспорт",
+                                   "number": "1234567890"
+                                 }
+                               ],
+                               "contacts": [
+                                 {
+                                   "type": "PHONE",
+                                   "number": "+79001234567"
+                                 }
+                               ],
+                               "addresses": [
+                                 {
+                                   "region": "Москва",
+                                   "fullAddress": "Тверская, 1"
+                                 }
+                               ]
+                             }
                             """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.fullName").value("Иванов Иван"));
+
     }
 
     @Test
     void updatePerson_shouldReturnUpdatedPerson() throws Exception {
-        when(personService.update(any(PersonDTO.class))).thenReturn(testPerson);
+        when(personService.update(any(Person.class))).thenReturn(personDTO);
 
         mockMvc.perform(put("/person")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                            {
-                              "id": 1,
-                              "fullName": "Иванов Иван",
-                              "passportData": "123456"
-                            }
+
+                                {
+                               "id": 1,
+                               "fullName": "Иванов Иван",
+                               "passportData": "123456",
+                               "documents": [
+                                 {
+                                   "name": "Паспорт",
+                                   "number": "123456"
+                                 }
+                               ],
+                               "contacts": [
+                                 {
+                                   "type": "PHONE",
+                                   "number": "+79001234567"
+                                 }
+                               ],
+                               "addresses": [
+                                 {
+                                   "region": "Москва",
+                                   "fullAddress": "Тверская, 1"
+                                 }
+                               ]
+                             }
                             """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
@@ -126,12 +188,63 @@ class PersonControllerTest {
         mockMvc.perform(post("/person")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                            {
-                              "id": 1,
-                              "fullName": "Иванов Иван",
-                              "passportData": "123456"
-                            }
+
+                        {
+                               "id": 1,
+                               "fullName": "Иванов Иван",
+                               "passportData": "123456",
+                               "documents": [
+                                 {
+                                   "type": "Паспорт",
+                                   "number": "1234567890"
+                                 }
+                               ],
+                               "contacts": [
+                                 {
+                                   "type": "PHONE",
+                                   "value": "+79001234567"
+                                 }
+                               ],
+                               "addresses": [
+                                 {
+                                   "city": "Москва",
+                                   "street": "Тверская",
+                                   "house": "1"
+                                 }
+                               ]
+                             }
                             """))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void getPersonByPassport_returnsPersonDTO() throws Exception {
+        Map<String, String> map = new HashMap<>();
+        map.put("Имя", "Иван Иванов");
+        map.put("Паспорт", "1234567890");
+
+        String passport = "1234567890";
+
+        when(personService.getByPassport(passport)).thenReturn(map);
+
+        mockMvc.perform(get("/person/passport/{passport}", passport))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.Имя").value("Иван Иванов"))
+                .andExpect(jsonPath("$.Паспорт").value("1234567890"));
+    }
+
+    @Test
+    void getPersonByPassport_returnsNull() throws Exception {
+
+        String passport = "1234567890";
+        PersonDTO dto = new PersonDTO();
+        dto.setId(1);
+        dto.setFullName("Иван Иванов");
+        dto.setPassportData(passport);
+
+        when(personService.getByPassport(passport)).thenThrow(PersonNotFoundException.class);
+
+        mockMvc.perform(get("/person/passport/{passport}", passport))
+                .andExpect(status().isNotFound());
     }
 }

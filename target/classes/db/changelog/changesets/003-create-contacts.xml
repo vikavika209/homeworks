@@ -5,25 +5,27 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="002" author="you">
-        <createTable tableName="identity_documents">
+    <changeSet id="003" author="you">
+        <createTable tableName="contacts">
             <column name="id" type="INT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="name" type="VARCHAR(100)"/>
-            <column name="number" type="VARCHAR(20)">
-                <constraints nullable="false" unique="false"/>
+            <column name="type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="number" type="VARCHAR(15)">
+                <constraints nullable="false"/>
             </column>
             <column name="persons_id" type="INT">
                 <constraints nullable="false"/>
             </column>
         </createTable>
 
-        <addForeignKeyConstraint baseTableName="identity_documents"
+        <addForeignKeyConstraint baseTableName="contacts"
                                  baseColumnNames="persons_id"
                                  referencedTableName="persons"
                                  referencedColumnNames="id"
-                                 constraintName="fk_identitydocument_person"/>
+                                 constraintName="fk_contact_person"/>
     </changeSet>
 
 </databaseChangeLog>

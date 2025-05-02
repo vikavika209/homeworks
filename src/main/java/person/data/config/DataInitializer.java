@@ -3,9 +3,10 @@ package person.data.config;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import person.data.dto.AddressDTO;
-import person.data.dto.ContactDTO;
 import person.data.dto.PersonDTO;
+import person.data.entity.Address;
+import person.data.entity.Contact;
+import person.data.entity.Person;
 import person.data.service.PersonService;
 
 import java.util.List;
@@ -16,7 +17,7 @@ public class DataInitializer {
     @Bean
     public CommandLineRunner initDatabase(PersonService personService) {
         return args -> {
-            PersonDTO ivanov = new PersonDTO();
+            Person ivanov = new Person();
             ivanov.setFullName("Иванов Иван Иванович");
             ivanov.setPassportData("1234567890");
             ivanov.setContacts(generateRandomContacts());
@@ -24,7 +25,7 @@ public class DataInitializer {
 
             personService.save(ivanov);
 
-            PersonDTO petrov = new PersonDTO();
+            Person petrov = new Person();
             petrov.setFullName("Петров Петр Петрович");
             petrov.setPassportData("0987654321");
             petrov.setContacts(generateRandomContacts());
@@ -38,15 +39,15 @@ public class DataInitializer {
         };
     }
 
-    private List<ContactDTO> generateRandomContacts() {
-        ContactDTO contact = new ContactDTO();
+    private List<Contact> generateRandomContacts() {
+        Contact contact = new Contact();
         contact.setType("mobile");
         contact.setNumber(generateRandomPhoneNumber());
         return List.of(contact);
     }
 
-    private List<AddressDTO> generateRandomAddresses() {
-        AddressDTO address = new AddressDTO();
+    private List<Address> generateRandomAddresses() {
+        Address address = new Address();
         address.setFullAddress("г. " + randomCity() + ", ул. Ленина, д. " + (1 + (int)(Math.random() * 100)));
         address.setRegion(randomCity());
         return List.of(address);

@@ -1,5 +1,6 @@
 package person.data.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -8,6 +9,7 @@ import person.data.dto.PersonDTO;
 import person.data.entity.IdentityDocument;
 import person.data.entity.Person;
 import person.data.exeption.PassportAlreadyExistException;
+import person.data.exeption.PersonNotFoundException;
 import person.data.mapper.PersonMapper;
 import person.data.repository.PersonRepository;
 
@@ -19,9 +21,14 @@ public class PersonService {
     private final PersonRepository personRepository;
     private final AddressService addressService;
     private final PersonMapper personMapper;
-    private IdentityDocumentService identityDocumentService;
+    private final IdentityDocumentService identityDocumentService;
 
-    public PersonService(PersonRepository personRepository, AddressService addressService, PersonMapper personMapper, IdentityDocumentService identityDocumentService) {
+    public PersonService(
+            PersonRepository personRepository,
+            AddressService addressService,
+            PersonMapper personMapper,
+            IdentityDocumentService identityDocumentService
+    ) {
         this.personRepository = personRepository;
         this.addressService = addressService;
         this.personMapper = personMapper;
@@ -29,45 +36,66 @@ public class PersonService {
     }
 
     @Transactional
-    public Person save(PersonDTO personDTO) {
-        Person person = personMapper.toEntity(personDTO);
+    public PersonDTO save(Person person) {
+        log.info(">>> сохранение Person с именем = {}.", person.getFullName());
 
-        if (!isThePassportExist(person.getPassportData())) {
+            if (!isThePassportExist(person.getPassportData())) {
+                log.info("Паспорт уникален >>> продолжаем сохранение.");
 
-            person.getDocuments().forEach(doc -> doc.setPerson(person));
-            person.getContacts().forEach(contact -> contact.setPerson(person));
-            person.getAddresses().forEach(address -> address.getPersons().add(person));
+                person.getDocuments().forEach(doc -> doc.setPerson(person));
+                log.info("Установлены документы для Person с id = {}", person.getId());
+                person.getContacts().forEach(contact -> contact.setPerson(person));
+                log.info("Установлены контакты для Person с id = {}", person.getId());
 
-            personRepository.save(person);
+                person.getAddresses().forEach(address ->
+                        log.info("Адреса перед сохранением: id={}, fullAddress={}, region={}", address.getId(), address.getFullAddress(), address.getRegion())
+                );
+                person.getAddresses().forEach(address -> address.getPersons().add(person));
+                log.info("Установлены адреса для Person с id = {}", person.getId());
 
-            IdentityDocument passport = new IdentityDocument("Паспорт", person.getPassportData(), person);
-            identityDocumentService.save(passport);
-            person.getDocuments().add(passport);
+                Person saved = personRepository.save(person);
+                log.info("Person с id = {} успешно сохранен.", saved.getId());
+                log.info("ID адреса после сохранения: {}", saved.getAddresses().get(0).getId());
 
-            log.info("Сохранен новый гражданин: {}", person);
+                IdentityDocument passport = new IdentityDocument("Паспорт", person.getPassportData(), person);
+                identityDocumentService.save(passport);
 
-            return person;
-        }
+                log.info("Сохранен новый гражданин: {}", person);
 
-        else {
-            throw new PassportAlreadyExistException("Паспорт с таким номером уже существует.");
-        }
+                PersonDTO personToReturn = personMapper.toDTO(saved);
+                log.info("Person >>> PersonDTO успешно.");
+
+                return personToReturn;
+            } else {
+                throw new PassportAlreadyExistException("Паспорт с таким номером уже существует.");
+            }
     }
 
 
     @Transactional
-    public Person update(PersonDTO personDTO) {
-        Person person = personMapper.toEntity(personDTO);
-        Optional<Person> existing = personRepository.findByIdForUpdate(person.getId());
+    public PersonDTO update(Person person) {
+        Person existing = personRepository.findByIdForUpdate(person.getId())
+                .orElseThrow(() -> new PersonNotFoundException("Не удалось найти гражданина с id = " + person.getId()));
 
-        if (existing.isEmpty()) {
-            log.info("Гражданин не найден, создание нового: {}", person);
-            return personRepository.save(person);
-        }
+        existing.setFullName(person.getFullName());
+        existing.setPassportData(person.getPassportData());
 
-        Person updatedPerson = personRepository.save(person);
-        log.info("Гражданин обновлён: {}", updatedPerson);
-        return updatedPerson;
+        existing.getDocuments().clear();
+        existing.getDocuments().addAll(person.getDocuments());
+        existing.getDocuments().forEach(doc -> doc.setPerson(existing));
+
+        existing.getContacts().clear();
+        existing.getContacts().addAll(person.getContacts());
+        existing.getContacts().forEach(contact -> contact.setPerson(existing));
+
+        existing.getAddresses().clear();
+        existing.getAddresses().addAll(person.getAddresses());
+        existing.getAddresses().forEach(address -> address.getPersons().add(existing));
+
+        Person saved = personRepository.save(existing);
+
+        log.info("Гражданин обновлён: {}", saved);
+        return personMapper.toDTO(saved);
     }
 
     public Page<Person> findAll() {
@@ -143,5 +171,22 @@ public class PersonService {
 
     private boolean isThePassportExist(String passportNumber) {
         return identityDocumentService.existsByDocumentNumber(passportNumber);
+    }
+
+    public Map<String, String> getByPassport(String passport){
+        Map<String, String> result = new HashMap<>();
+        log.info("Поиск гражданина с паспортом = {}.", passport);
+        Person personFromData = personRepository.findByPassportData(passport).orElse(null);
+
+        if (personFromData == null) {
+            log.error("Гражданин с паспортом = {} не найден.", passport);
+            throw new PersonNotFoundException("Гражданин с паспортом: " + passport + " не найден.");
+        }
+        log.info("Найдем гражданин с паспортом = {}; Имя = {}.", passport, personFromData.getFullName());
+
+        result.put("Имя", personFromData.getFullName());
+        result.put("Паспорт", personFromData.getPassportData());
+
+        return result;
     }
 }

@@ -53,4 +53,12 @@ public class GlobalExceptionHandler {
                 .body("Паспорт с таким номером уже существует: " + ex.getMessage());
     }
 
+    @ExceptionHandler(PersonNotFoundException.class)
+    public ResponseEntity<String> handlePersonNotFoundException(PersonNotFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body("Person не найден: " + ex.getMessage());
+    }
+
+
 }
