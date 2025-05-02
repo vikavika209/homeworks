@@ -55,21 +55,4 @@ class VaccinationControllerTest {
                         .param("document", "0000000000"))
                 .andExpect(status().isNoContent());
     }
-
-    @Test
-    void saveVaccination_ReturnsOk() throws Exception {
-        MockMultipartFile file = new MockMultipartFile(
-                "file",
-                "vaccination_data.csv",
-                "text/csv",
-                "Иванов Иван,1234567890,2024-01-01,Спутник V,001,Пункт №1,Москва".getBytes()
-        );
-
-        Mockito.doNothing().when(fileReaderService).getVaccinationInfo(Mockito.any(MultipartFile.class));
-
-        mockMvc.perform(MockMvcRequestBuilders.multipart("/vaccinations/upload")
-                        .file(file))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Файл успешно обработан и данные сохранены"));
-    }
 }

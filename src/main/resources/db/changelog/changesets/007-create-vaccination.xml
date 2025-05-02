@@ -5,6 +5,11 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="007-1" author="you">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="vaccination"/>
+            </not>
+        </preConditions>
         <createTable tableName="vaccination">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -22,6 +27,9 @@
                 <constraints nullable="false"/>
             </column>
             <column name="vaccination_point_certificate" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_sent_to_kafka" type="BOOLEAN" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
         </createTable>

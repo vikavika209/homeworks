@@ -15,4 +15,5 @@ public interface VaccinationRepository extends JpaRepository<Vaccination, Long> 
     @Query("SELECT v FROM Vaccination v WHERE v.id = :id")
     VaccinationPoint findByIdForUpdate(@Param("id") Long id);
     List<Vaccination> findAllByIdentityDocument(String passport);
+    List<Vaccination> findAllByIsSentToKafkaFalse();
 }

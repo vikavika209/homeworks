@@ -12,11 +12,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import person.data.dto.PersonDTO;
+import person.data.entity.Address;
+import person.data.entity.Contact;
 import person.data.entity.Person;
 import person.data.exeption.PassportAlreadyExistException;
 import person.data.service.IdentityDocumentService;
 import person.data.service.PersonService;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -46,10 +49,13 @@ class PersonControllerTest {
         testPerson.setId(1);
         testPerson.setFullName("Иванов Иван");
         testPerson.setPassportData("123456");
+        testPerson.setAddresses(Collections.singletonList(new Address()));
+        testPerson.setContacts(Collections.singletonList(new Contact()));
 
         personDTO = new PersonDTO();
         personDTO.setId(1);
         personDTO.setFullName("Иванов Иван");
+        testPerson.setAddresses(Collections.singletonList(new Address()));
     }
 
     @Test
@@ -59,10 +65,31 @@ class PersonControllerTest {
         mockMvc.perform(post("/person")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                            {
-                              "fullName": "Иванов Иван",
-                              "passportData": "123456"
-                            }
+
+                                {
+                               "id": 1,
+                               "fullName": "Иванов Иван",
+                               "passportData": "123456",
+                               "documents": [
+                                 {
+                                   "type": "Паспорт",
+                                   "number": "1234567890"
+                                 }
+                               ],
+                               "contacts": [
+                                 {
+                                   "type": "PHONE",
+                                   "value": "+79001234567"
+                                 }
+                               ],
+                               "addresses": [
+                                 {
+                                   "city": "Москва",
+                                   "street": "Тверская",
+                                   "house": "1"
+                                 }
+                               ]
+                             }
                             """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
@@ -76,11 +103,31 @@ class PersonControllerTest {
         mockMvc.perform(put("/person")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                            {
-                              "id": 1,
-                              "fullName": "Иванов Иван",
-                              "passportData": "123456"
-                            }
+
+                                {
+                               "id": 1,
+                               "fullName": "Иванов Иван",
+                               "passportData": "123456",
+                               "documents": [
+                                 {
+                                   "type": "Паспорт",
+                                   "number": "1234567890"
+                                 }
+                               ],
+                               "contacts": [
+                                 {
+                                   "type": "PHONE",
+                                   "value": "+79001234567"
+                                 }
+                               ],
+                               "addresses": [
+                                 {
+                                   "city": "Москва",
+                                   "street": "Тверская",
+                                   "house": "1"
+                                 }
+                               ]
+                             }
                             """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
@@ -126,11 +173,31 @@ class PersonControllerTest {
         mockMvc.perform(post("/person")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                            {
-                              "id": 1,
-                              "fullName": "Иванов Иван",
-                              "passportData": "123456"
-                            }
+
+                        {
+                               "id": 1,
+                               "fullName": "Иванов Иван",
+                               "passportData": "123456",
+                               "documents": [
+                                 {
+                                   "type": "Паспорт",
+                                   "number": "1234567890"
+                                 }
+                               ],
+                               "contacts": [
+                                 {
+                                   "type": "PHONE",
+                                   "value": "+79001234567"
+                                 }
+                               ],
+                               "addresses": [
+                                 {
+                                   "city": "Москва",
+                                   "street": "Тверская",
+                                   "house": "1"
+                                 }
+                               ]
+                             }
                             """))
                 .andExpect(status().isConflict());
     }

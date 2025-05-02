@@ -42,7 +42,6 @@ public class PersonService {
 
             IdentityDocument passport = new IdentityDocument("Паспорт", person.getPassportData(), person);
             identityDocumentService.save(passport);
-            person.getDocuments().add(passport);
 
             log.info("Сохранен новый гражданин: {}", person);
 

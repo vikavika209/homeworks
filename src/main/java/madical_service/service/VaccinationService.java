@@ -1,11 +1,16 @@
 package madical_service.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import madical_service.dto.VaccinationEventDto;
 import madical_service.entity.Vaccination;
 import madical_service.repository.VaccinationRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,9 +20,16 @@ import java.util.List;
 @Slf4j
 public class VaccinationService {
     private final VaccinationRepository vaccinationRepository;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper;
 
-    public VaccinationService(VaccinationRepository vaccinationRepository) {
+    @Value("${kafka.topic.vaccination}")
+    private String topic;
+
+    public VaccinationService(VaccinationRepository vaccinationRepository, KafkaTemplate<String, String> kafkaTemplate) {
         this.vaccinationRepository = vaccinationRepository;
+        this.kafkaTemplate = kafkaTemplate;
+        this.objectMapper = new ObjectMapper();
     }
 
     public Vaccination create(Vaccination vaccination) {
@@ -51,5 +63,21 @@ public class VaccinationService {
     public List<Vaccination> getAllVaccinationsForPerson(String passport) {
         log.info("Поиск вакцинаций для гражданина с паспортом: {}", passport);
         return vaccinationRepository.findAllByIdentityDocument(passport);
+    }
+
+    public void sendVaccinationEvent(Vaccination vaccination){
+        try {
+            VaccinationEventDto dto = new VaccinationEventDto(
+                    vaccination.getId(),
+                    vaccination.getIdentityDocument(),
+                    vaccination.getVaccine().getName(),
+                    vaccination.getVaccinationDate()
+            );
+            String jsonMessage = objectMapper.writeValueAsString(dto);
+            kafkaTemplate.send(topic, String.valueOf(vaccination.getId()), jsonMessage);
+            log.info("Вакцинация отправлена в Kafka: {}", jsonMessage);
+        } catch (   JsonProcessingException e) {
+            log.error("Ошибка сериализации события вакцинации: {}", e.getMessage());
+        }
     }
 }

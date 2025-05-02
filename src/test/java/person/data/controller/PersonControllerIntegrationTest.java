@@ -48,10 +48,29 @@ class PersonControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                         {
-                          "id": 1,
-                          "fullName": "Иванов Иван",
-                          "passportData": "123456"
-                        }
+                               "id": 1,
+                               "fullName": "Иванов Иван",
+                               "passportData": "123456",
+                               "documents": [
+                                 {
+                                   "type": "Паспорт",
+                                   "number": "1234567890"
+                                 }
+                               ],
+                               "contacts": [
+                                 {
+                                   "type": "PHONE",
+                                   "value": "+79001234567"
+                                 }
+                               ],
+                               "addresses": [
+                                 {
+                                   "city": "Москва",
+                                   "street": "Тверская",
+                                   "house": "1"
+                                 }
+                               ]
+                             }
                         """))
                 .andExpect(status().isConflict());
     }

@@ -52,11 +52,7 @@ public class PersonController {
 
         boolean isValid = personService.verifyIdentity(name, passport);
 
-        if (isValid) {
-            return ResponseEntity.ok(true);
-        }
-        else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
-        }
+        return ResponseEntity.status(HttpStatus.OK).body(isValid);
+
     }
 }
