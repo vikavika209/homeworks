@@ -20,7 +20,6 @@ public class VaccinationController {
     private final VaccinationService vaccinationService;
     private final FileReaderService fileReaderService;
 
-
     public VaccinationController(VaccinationService vaccinationService, FileReaderService fileReaderService) {
         this.vaccinationService = vaccinationService;
         this.fileReaderService = fileReaderService;
@@ -42,7 +41,7 @@ public class VaccinationController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<String> saveVaccination(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String> saveVaccination(@RequestPart("file") MultipartFile file) {
         System.out.println("Получен файл: " + file.getOriginalFilename());
         fileReaderService.getVaccinationInfo(file);
         return ResponseEntity.ok("Файл успешно обработан и данные сохранены");
