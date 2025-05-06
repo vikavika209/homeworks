@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.example.client.PersonClient;
 import com.example.dto.Person;
+import com.example.dto.PersonDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +39,12 @@ class PersonGatewayControllerTest {
         person.setFullName("Иван Иванов");
         person.setPassportData("1234567890");
 
+        PersonDTO personDTO = new PersonDTO();
+        personDTO.setFullName("Иван Иванов");
+        personDTO.setPassportData("1234567890");
+
         when(personClient.createPerson(any(Person.class)))
-                .thenReturn(ResponseEntity.ok(person));
+                .thenReturn(ResponseEntity.ok(personDTO));
 
         mockMvc.perform(post("/api/v1/person")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -54,8 +59,12 @@ class PersonGatewayControllerTest {
         person.setFullName("Тестовый");
         person.setPassportData("111222333");
 
+        PersonDTO personDTO = new PersonDTO();
+        personDTO.setFullName("Тестовый");
+        personDTO.setPassportData("111222333");
+
         when(personClient.getPersonById(1))
-                .thenReturn(ResponseEntity.ok(person));
+                .thenReturn(ResponseEntity.ok(personDTO));
 
         mockMvc.perform(get("/api/v1/person/1"))
                 .andExpect(status().isOk())

@@ -46,26 +46,12 @@ public class MedicalGatewayController {
             value = "/vaccinations/upload",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    public ResponseEntity<String> upload(@RequestParam("file") MultipartFile file) throws IOException {
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", new MultipartInputStreamFileResource(file.getInputStream(), file.getOriginalFilename()));
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-
-        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-        ResponseEntity<String> response = new RestTemplate().postForEntity(
-                "http://localhost:8080/vaccinations/upload",
-                requestEntity,
-                String.class
-        );
-
-        if(!response.getStatusCode().is2xxSuccessful())
-        {
-            throw new MedicalClientException("Не удалось загрузить вакцинации из файла: " + file);
+    public ResponseEntity<String> upload(@RequestPart("file") MultipartFile file) throws IOException {
+        ResponseEntity<String> response = medicalClient.saveVaccination(file);
+        if(!response.getStatusCode().is2xxSuccessful()) {
+            throw new MedicalClientException("Не удалось обработать файл.");
         }
-        return response;
+        else return response;
     }
 }
 

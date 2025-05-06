@@ -77,7 +77,7 @@ class MedicalGatewayControllerTest {
         when(medicalClient.saveVaccination(any(MultipartFile.class)))
                 .thenReturn(ResponseEntity.ok("Файл успешно обработан"));
 
-        mockMvc.perform(multipart("/api/v1/medical/upload")
+        mockMvc.perform(multipart("/api/v1/medical/vaccinations/upload")
                         .file(file))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Файл успешно обработан"));
@@ -90,9 +90,11 @@ class MedicalGatewayControllerTest {
         when(medicalClient.saveVaccination(any(MultipartFile.class)))
                 .thenReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка загрузки"));
 
-        mockMvc.perform(multipart("/api/v1/medical/upload")
+        mockMvc.perform(multipart("/api/v1/medical/vaccinations/upload")
                         .file(file))
                 .andExpect(status().isBadGateway())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Не удалось загрузить вакцинации")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(
+                        "Ошибка с получением информации из medical service: Не удалось обработать файл."
+                )));
     }
 }
