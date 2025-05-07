@@ -56,7 +56,7 @@ class PersonGatewayControllerTest {
     @Test
     void getPersonById_returnsOk() throws Exception {
         Person person = new Person();
-        person.setFullName("Тестовый");
+        person.setFullName("Тест");
         person.setPassportData("111222333");
 
         PersonDTO personDTO = new PersonDTO();
