@@ -1,0 +1,39 @@
+Index: src/main/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>spring.jpa.hibernate.ddl-auto=update\r\n\r\nspring.jpa.show-sql=true\r\n\r\nspring.jpa.properties.hibernate.format_sql=true\r\n\r\nspring.jpa.properties.hibernate.use_sql_comments=true\r\n\r\nlogging.level.org.hibernate.SQL=DEBUG\r\n\r\nlogging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE\r\n\r\nspring.liquibase.change-log=classpath:db/changelog/db.changelog-master.xml\r\n\r\nspring.liquibase.enabled=true\r\n\r\nspring.flyway.enabled=false\r\n\r\n\r\n
+===================================================================
+diff --git a/src/main/resources/application.properties b/src/main/resources/application.properties
+--- a/src/main/resources/application.properties	(revision 307d23d0f79c70d5f953d4c71571b2786174ac92)
++++ b/src/main/resources/application.properties	(date 1745840909387)
+@@ -16,4 +16,7 @@
+ 
+ spring.flyway.enabled=false
+ 
+-
++spring.datasource.url=jdbc:postgresql://localhost:5432/person_db
++spring.datasource.username=postgres
++spring.datasource.password=postgres
++spring.datasource.driver-class-name=org.postgresql.Driver
+Index: src/main/java/person/data/controller/PersonController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package person.data.controller;\r\n\r\nimport jakarta.validation.Valid;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.springframework.data.domain.Page;\r\nimport org.springframework.data.domain.Pageable;\r\nimport org.springframework.http.HttpStatus;\r\nimport org.springframework.http.ResponseEntity;\r\nimport org.springframework.web.bind.annotation.*;\r\nimport person.data.dto.PersonDTO;\r\nimport person.data.entity.Person;\r\nimport person.data.service.PersonService;\r\n\r\n@RestController\r\n@RequiredArgsConstructor\r\n@RequestMapping(\"/person\")\r\npublic class PersonController {\r\n\r\n    private final PersonService personService;\r\n\r\n    @PostMapping\r\n    public ResponseEntity<Person> createPerson(@RequestBody @Valid PersonDTO person) {\r\n        Person created = personService.save(person);\r\n        return ResponseEntity.status(HttpStatus.CREATED).body(created);\r\n    }\r\n\r\n    @PutMapping\r\n    public ResponseEntity<Person> updatePerson(@RequestBody @Valid PersonDTO person) {\r\n        Person updated = personService.update(person);\r\n        return ResponseEntity.ok(updated);\r\n    }\r\n\r\n    @GetMapping(\"/{id}\")\r\n    public ResponseEntity<PersonDTO> getPersonById(@PathVariable Integer id) {\r\n        return ResponseEntity.ok(personService.findById(id));\r\n    }\r\n\r\n    @GetMapping\r\n    public ResponseEntity<Page<PersonDTO>> getAllPersons(\r\n            @RequestParam(required = false) String region,\r\n            Pageable pageable\r\n    ) {\r\n\r\n        Page<PersonDTO> page = personService.findAllByRegion(region, pageable);\r\n        return ResponseEntity.ok(page);\r\n    }\r\n\r\n    @GetMapping(\"/verify\")\r\n    public ResponseEntity<Boolean> verifyPerson(\r\n            @RequestParam String name,\r\n            @RequestParam String passport) {\r\n\r\n        boolean isValid = personService.verifyIdentity(name, passport);\r\n\r\n        if (isValid) {\r\n            return ResponseEntity.ok(true);\r\n        }\r\n        else {\r\n            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);\r\n        }\r\n    }\r\n}\r\n
+===================================================================
+diff --git a/src/main/java/person/data/controller/PersonController.java b/src/main/java/person/data/controller/PersonController.java
+--- a/src/main/java/person/data/controller/PersonController.java	(revision 307d23d0f79c70d5f953d4c71571b2786174ac92)
++++ b/src/main/java/person/data/controller/PersonController.java	(date 1745840490214)
+@@ -51,12 +51,6 @@
+             @RequestParam String passport) {
+ 
+         boolean isValid = personService.verifyIdentity(name, passport);
+-
+-        if (isValid) {
+-            return ResponseEntity.ok(true);
+-        }
+-        else {
+-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
+-        }
++        return ResponseEntity.ok(isValid);
+     }
+ }

@@ -1,0 +1,260 @@
+Index: src/main/java/person/data/entity/IdentityDocument.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package person.data.entity;\r\n\r\nimport jakarta.persistence.*;\r\nimport jakarta.validation.constraints.NotBlank;\r\nimport jakarta.validation.constraints.Pattern;\r\nimport jakarta.validation.constraints.Size;\r\nimport lombok.AllArgsConstructor;\r\nimport lombok.Getter;\r\nimport lombok.NoArgsConstructor;\r\nimport lombok.Setter;\r\n\r\n@Entity\r\n@Getter\r\n@Setter\r\n@AllArgsConstructor\r\n@NoArgsConstructor\r\n@Table(name = \"identity_documents\")\r\npublic class IdentityDocument {\r\n    @Id\r\n    @GeneratedValue\r\n    private int id;\r\n    private String name;\r\n    @NotBlank(message = \"Необходимо указать номер документа.\")\r\n    @Size(min = 6, max = 20, message = \"Номер документа должен содержать от 6 до 20 цифр.\")\r\n    @Pattern(regexp = \"\\\\d+\", message = \"Номер документа должен состоять из цифр.\")\r\n    private String number;\r\n    @ManyToOne(fetch = FetchType.LAZY)\r\n    @JoinColumn(name = \"persons_id\", nullable = false)\r\n    private Person person;\r\n}\r\n
+===================================================================
+diff --git a/src/main/java/person/data/entity/IdentityDocument.java b/src/main/java/person/data/entity/IdentityDocument.java
+--- a/src/main/java/person/data/entity/IdentityDocument.java	(revision 307d23d0f79c70d5f953d4c71571b2786174ac92)
++++ b/src/main/java/person/data/entity/IdentityDocument.java	(date 1745863533169)
+@@ -27,4 +27,10 @@
+     @ManyToOne(fetch = FetchType.LAZY)
+     @JoinColumn(name = "persons_id", nullable = false)
+     private Person person;
++
++    public IdentityDocument(String name, String number, Person person) {
++        this.name = name;
++        this.number = number;
++        this.person = person;
++    }
+ }
+Index: src/main/java/person/data/entity/Person.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package person.data.entity;\r\n\r\nimport jakarta.persistence.*;\r\nimport lombok.*;\r\n\r\nimport java.util.ArrayList;\r\nimport java.util.List;\r\n\r\n@Entity\r\n@Getter\r\n@Setter\r\n@AllArgsConstructor\r\n@NoArgsConstructor\r\n@Table(name = \"persons\")\r\npublic class Person {\r\n    @Id\r\n    @GeneratedValue\r\n    private int id;\r\n    private String fullName;\r\n    private String passportData;\r\n    @OneToMany(mappedBy = \"person\", cascade = CascadeType.ALL, orphanRemoval = true)\r\n    private List<IdentityDocument> documents = new ArrayList<>();\r\n    @OneToMany(mappedBy = \"person\", cascade = CascadeType.ALL, orphanRemoval = true)\r\n    private List<Contact> contacts = new ArrayList<>();\r\n    @ManyToMany(cascade = CascadeType.ALL)\r\n    @JoinTable(\r\n            name = \"person_address\",\r\n            joinColumns = @JoinColumn(name = \"person_id\"),\r\n            inverseJoinColumns = @JoinColumn(name = \"address_id\")\r\n    )\r\n    private List<Address> addresses =  new ArrayList<>();\r\n\r\n    @Version\r\n    private Integer version;\r\n}\r\n
+===================================================================
+diff --git a/src/main/java/person/data/entity/Person.java b/src/main/java/person/data/entity/Person.java
+--- a/src/main/java/person/data/entity/Person.java	(revision 307d23d0f79c70d5f953d4c71571b2786174ac92)
++++ b/src/main/java/person/data/entity/Person.java	(date 1745863062947)
+@@ -32,4 +32,17 @@
+ 
+     @Version
+     private Integer version;
++
++    @Override
++    public String toString() {
++        return "Person{" +
++                "id=" + id +
++                ", fullName='" + fullName + '\'' +
++                ", passportData='" + passportData + '\'' +
++                ", documents=" + documents +
++                ", contacts=" + contacts +
++                ", addresses=" + addresses +
++                ", version=" + version +
++                '}';
++    }
+ }
+Index: src/main/java/person/data/service/PersonService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package person.data.service;\r\n\r\nimport lombok.extern.slf4j.Slf4j;\r\nimport org.springframework.data.domain.*;\r\nimport org.springframework.stereotype.Service;\r\nimport org.springframework.transaction.annotation.Transactional;\r\nimport person.data.dto.PersonDTO;\r\nimport person.data.entity.Person;\r\nimport person.data.exeption.PassportAlreadyExistException;\r\nimport person.data.mapper.PersonMapper;\r\nimport person.data.repository.PersonRepository;\r\n\r\nimport java.util.*;\r\n\r\n@Service\r\n@Slf4j\r\npublic class PersonService {\r\n    private final PersonRepository personRepository;\r\n    private final AddressService addressService;\r\n    private final PersonMapper personMapper;\r\n    private IdentityDocumentService identityDocumentService;\r\n\r\n    public PersonService(PersonRepository personRepository, AddressService addressService, PersonMapper personMapper, IdentityDocumentService identityDocumentService) {\r\n        this.personRepository = personRepository;\r\n        this.addressService = addressService;\r\n        this.personMapper = personMapper;\r\n        this.identityDocumentService = identityDocumentService;\r\n    }\r\n\r\n    @Transactional\r\n    public Person save(PersonDTO personDTO) {\r\n        Person person = personMapper.toEntity(personDTO);\r\n\r\n        if (!isThePassportExist(person.getPassportData())) {\r\n\r\n            person.getDocuments().forEach(doc -> doc.setPerson(person));\r\n            person.getContacts().forEach(contact -> contact.setPerson(person));\r\n            person.getAddresses().forEach(address -> address.getPersons().add(person));\r\n\r\n            personRepository.save(person);\r\n\r\n            log.info(\"Сохранен новый гражданин: {}\", person);\r\n\r\n            return person;\r\n        }\r\n\r\n        else {\r\n            throw new PassportAlreadyExistException(\"Паспорт с таким номером уже существует.\");\r\n        }\r\n    }\r\n\r\n\r\n    @Transactional\r\n    public Person update(PersonDTO personDTO) {\r\n        Person person = personMapper.toEntity(personDTO);\r\n        Optional<Person> existing = personRepository.findByIdForUpdate(person.getId());\r\n\r\n        if (existing.isEmpty()) {\r\n            log.info(\"Гражданин не найден, создание нового: {}\", person);\r\n            return personRepository.save(person);\r\n        }\r\n\r\n        Person updatedPerson = personRepository.save(person);\r\n        log.info(\"Гражданин обновлён: {}\", updatedPerson);\r\n        return updatedPerson;\r\n    }\r\n\r\n    public Page<Person> findAll() {\r\n        Pageable pageable = PageRequest.of(0, 10, Sort.by(\"fullName\").ascending());\r\n        Page<Person> persons = personRepository.findAll(pageable);\r\n        log.info(\"Получен список всех граждан длинной: {}\", persons.getTotalElements());\r\n        return persons;\r\n    }\r\n\r\n    @Transactional(readOnly = true)\r\n    public Page<PersonDTO> findAllByRegion(String region, Pageable pageable) {\r\n        List<PersonDTO> personsDTOFromTheRegion = new ArrayList<>();\r\n\r\n        Set<Person> personsFromTheRegion = addressService.findAllPersonsByRegion(region);\r\n\r\n        if (!personsFromTheRegion.isEmpty()) {\r\n            log.info(\"Получен список граждан из региона {}.\", region);\r\n        }\r\n        else {\r\n            log.info(\"Cписок граждан из региона {} пустой.\", region);\r\n        }\r\n\r\n        for (Person person : personsFromTheRegion) {\r\n            personsDTOFromTheRegion.add(personMapper.toDTO(person));\r\n        }\r\n        return new PageImpl<>(personsDTOFromTheRegion, pageable, personsFromTheRegion.size());\r\n    }\r\n\r\n    public PersonDTO findById(int id) {\r\n        Person person = personRepository.findById(id).orElse(null);\r\n        if (person == null) {\r\n            log.info(\"Гражданин с id: {} не найден >>> возврат null.\", id);\r\n        }\r\n        else {\r\n            log.info(\"Найден гражданин с id: {}.\", id);\r\n        }\r\n        return personMapper.toDTO(person);\r\n    }\r\n\r\n    public void delete(int id) {\r\n        Person person = personRepository.findById(id).orElse(null);\r\n        if (person == null) {\r\n            log.info(\"Гражданин не найден, удаление отменено.\");\r\n            return;\r\n        }\r\n        else {\r\n            log.info(\"Удаление гражданина с id: {}\", id);\r\n        }\r\n        personRepository.deleteById(id);\r\n    }\r\n\r\n    @Transactional(readOnly = true)\r\n    public boolean verifyIdentity(String name, String documentData) {\r\n        log.info(\"Проверка связки: имя = {}, документ = {}\", name, documentData);\r\n\r\n        List<Person> personsWithTheName = personRepository.findByFullName(name);\r\n\r\n        if (personsWithTheName.isEmpty()) {\r\n            log.info(\"Нет граждан с именем: {}\", name);\r\n            return false;\r\n        }\r\n\r\n        return personsWithTheName.stream()\r\n                .flatMap(person -> person.getDocuments().stream())\r\n                .anyMatch(doc -> {\r\n                    boolean match = Objects.equals(doc.getNumber(), documentData);\r\n                    if (match) {\r\n                        log.info(\"Найден документ: {} у гражданина с именем: {}\", documentData, name);\r\n                    }\r\n                    return match;\r\n                });\r\n    }\r\n\r\n    private boolean isThePassportExist(String passportNumber) {\r\n        return identityDocumentService.existsByDocumentNumber(passportNumber);\r\n    }\r\n}\r\n
+===================================================================
+diff --git a/src/main/java/person/data/service/PersonService.java b/src/main/java/person/data/service/PersonService.java
+--- a/src/main/java/person/data/service/PersonService.java	(revision 307d23d0f79c70d5f953d4c71571b2786174ac92)
++++ b/src/main/java/person/data/service/PersonService.java	(date 1745863733686)
+@@ -5,6 +5,7 @@
+ import org.springframework.stereotype.Service;
+ import org.springframework.transaction.annotation.Transactional;
+ import person.data.dto.PersonDTO;
++import person.data.entity.IdentityDocument;
+ import person.data.entity.Person;
+ import person.data.exeption.PassportAlreadyExistException;
+ import person.data.mapper.PersonMapper;
+@@ -33,13 +34,18 @@
+ 
+         if (!isThePassportExist(person.getPassportData())) {
+ 
++            IdentityDocument passport = new IdentityDocument("Паспорт", person.getPassportData(), person);
++
+             person.getDocuments().forEach(doc -> doc.setPerson(person));
+             person.getContacts().forEach(contact -> contact.setPerson(person));
+             person.getAddresses().forEach(address -> address.getPersons().add(person));
+ 
+             personRepository.save(person);
+ 
+-            log.info("Сохранен новый гражданин: {}", person);
++            identityDocumentService.save(passport);
++            person.getDocuments().add(passport);
++
++            log.info("Сохранен новый гражданин: {}", person.toString());
+ 
+             return person;
+         }
+@@ -114,6 +120,10 @@
+         personRepository.deleteById(id);
+     }
+ 
++    public void deleteAll(){
++        personRepository.deleteAll();
++    }
++
+     @Transactional(readOnly = true)
+     public boolean verifyIdentity(String name, String documentData) {
+         log.info("Проверка связки: имя = {}, документ = {}", name, documentData);
+Index: src/main/java/person/data/controller/PersonController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package person.data.controller;\r\n\r\nimport jakarta.validation.Valid;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.springframework.data.domain.Page;\r\nimport org.springframework.data.domain.Pageable;\r\nimport org.springframework.http.HttpStatus;\r\nimport org.springframework.http.ResponseEntity;\r\nimport org.springframework.web.bind.annotation.*;\r\nimport person.data.dto.PersonDTO;\r\nimport person.data.entity.Person;\r\nimport person.data.service.PersonService;\r\n\r\n@RestController\r\n@RequiredArgsConstructor\r\n@RequestMapping(\"/person\")\r\npublic class PersonController {\r\n\r\n    private final PersonService personService;\r\n\r\n    @PostMapping\r\n    public ResponseEntity<Person> createPerson(@RequestBody @Valid PersonDTO person) {\r\n        Person created = personService.save(person);\r\n        return ResponseEntity.status(HttpStatus.CREATED).body(created);\r\n    }\r\n\r\n    @PutMapping\r\n    public ResponseEntity<Person> updatePerson(@RequestBody @Valid PersonDTO person) {\r\n        Person updated = personService.update(person);\r\n        return ResponseEntity.ok(updated);\r\n    }\r\n\r\n    @GetMapping(\"/{id}\")\r\n    public ResponseEntity<PersonDTO> getPersonById(@PathVariable Integer id) {\r\n        return ResponseEntity.ok(personService.findById(id));\r\n    }\r\n\r\n    @GetMapping\r\n    public ResponseEntity<Page<PersonDTO>> getAllPersons(\r\n            @RequestParam(required = false) String region,\r\n            Pageable pageable\r\n    ) {\r\n\r\n        Page<PersonDTO> page = personService.findAllByRegion(region, pageable);\r\n        return ResponseEntity.ok(page);\r\n    }\r\n\r\n    @GetMapping(\"/verify\")\r\n    public ResponseEntity<Boolean> verifyPerson(\r\n            @RequestParam String name,\r\n            @RequestParam String passport) {\r\n\r\n        boolean isValid = personService.verifyIdentity(name, passport);\r\n\r\n        if (isValid) {\r\n            return ResponseEntity.ok(true);\r\n        }\r\n        else {\r\n            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);\r\n        }\r\n    }\r\n}\r\n
+===================================================================
+diff --git a/src/main/java/person/data/controller/PersonController.java b/src/main/java/person/data/controller/PersonController.java
+--- a/src/main/java/person/data/controller/PersonController.java	(revision 307d23d0f79c70d5f953d4c71571b2786174ac92)
++++ b/src/main/java/person/data/controller/PersonController.java	(date 1745858620402)
+@@ -9,6 +9,7 @@
+ import org.springframework.web.bind.annotation.*;
+ import person.data.dto.PersonDTO;
+ import person.data.entity.Person;
++import person.data.mapper.PersonMapper;
+ import person.data.service.PersonService;
+ 
+ @RestController
+@@ -17,17 +18,18 @@
+ public class PersonController {
+ 
+     private final PersonService personService;
++    private final PersonMapper personMapper;
+ 
+     @PostMapping
+-    public ResponseEntity<Person> createPerson(@RequestBody @Valid PersonDTO person) {
++    public ResponseEntity<PersonDTO> createPerson(@RequestBody @Valid PersonDTO person) {
+         Person created = personService.save(person);
+-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
++        return ResponseEntity.status(HttpStatus.CREATED).body(personMapper.toDTO(created));
+     }
+ 
+     @PutMapping
+-    public ResponseEntity<Person> updatePerson(@RequestBody @Valid PersonDTO person) {
++    public ResponseEntity<PersonDTO> updatePerson(@RequestBody @Valid PersonDTO person) {
+         Person updated = personService.update(person);
+-        return ResponseEntity.ok(updated);
++        return ResponseEntity.ok(personMapper.toDTO(updated));
+     }
+ 
+     @GetMapping("/{id}")
+@@ -56,7 +58,13 @@
+             return ResponseEntity.ok(true);
+         }
+         else {
+-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
++            return ResponseEntity.ok(false);
+         }
+     }
++
++    @DeleteMapping("/delete")
++    public ResponseEntity<Void> deleteAllPerson() {
++        personService.deleteAll();
++        return ResponseEntity.noContent().build();
++    }
+ }
+Index: src/main/resources/db/changelog/db.changelog-master.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<databaseChangeLog\r\n        xmlns=\"http://www.liquibase.org/xml/ns/dbchangelog\"\r\n        xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n        xsi:schemaLocation=\"http://www.liquibase.org/xml/ns/dbchangelog\r\n            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd\">\r\n\r\n    <include file=\"db/changelog/changesets/001-create-persons.xml\"/>\r\n    <include file=\"db/changelog/changesets/002-create-identity-documents.xml\"/>\r\n    <include file=\"db/changelog/changesets/003-create-contacts.xml\"/>\r\n    <include file=\"db/changelog/changesets/004-create-addresses.xml\"/>\r\n    <include file=\"db/changelog/changesets/005-create-person-address.xml\"/>\r\n\r\n</databaseChangeLog>\r\n
+===================================================================
+diff --git a/src/main/resources/db/changelog/db.changelog-master.xml b/src/main/resources/db/changelog/db.changelog-master.xml
+--- a/src/main/resources/db/changelog/db.changelog-master.xml	(revision 307d23d0f79c70d5f953d4c71571b2786174ac92)
++++ b/src/main/resources/db/changelog/db.changelog-master.xml	(date 1745855445021)
+@@ -5,10 +5,13 @@
+         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+ 
++    <include file="db/changelog/changesets/000-create-sequences.xml"/>
+     <include file="db/changelog/changesets/001-create-persons.xml"/>
+     <include file="db/changelog/changesets/002-create-identity-documents.xml"/>
+     <include file="db/changelog/changesets/003-create-contacts.xml"/>
+     <include file="db/changelog/changesets/004-create-addresses.xml"/>
+     <include file="db/changelog/changesets/005-create-person-address.xml"/>
++    <include file="db/changelog/changesets/006-create-vaccine-and-vaccination-point.xml"/>
++    <include file="db/changelog/changesets/007-create-vaccination.xml"/>
+ 
+ </databaseChangeLog>
+Index: src/main/java/person/data/dto/PersonDTO.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package person.data.dto;\r\n\r\nimport jakarta.validation.Valid;\r\nimport jakarta.validation.constraints.NotBlank;\r\nimport jakarta.validation.constraints.Pattern;\r\nimport jakarta.validation.constraints.Size;\r\nimport lombok.AllArgsConstructor;\r\nimport lombok.Getter;\r\nimport lombok.NoArgsConstructor;\r\nimport lombok.Setter;\r\nimport person.data.entity.Address;\r\nimport person.data.entity.Contact;\r\nimport person.data.entity.IdentityDocument;\r\n\r\nimport java.util.List;\r\n\r\n@AllArgsConstructor\r\n@NoArgsConstructor\r\n@Getter\r\n@Setter\r\npublic class PersonDTO {\r\n    private int id;\r\n    @NotBlank(message = \"Необходимо указать имя.\")\r\n    private String fullName;\r\n    @NotBlank(message = \"Необходимо указать паспортные данные.\")\r\n    @Size(min = 6, max = 20, message = \"Паспортные данные должны содержать от 6 до 20 цифр.\")\r\n    @Pattern(regexp = \"\\\\d+\", message = \"Паспортные данные должны состоять из цифр.\")\r\n    private String passportData;\r\n    @Valid\r\n    private List<IdentityDocument> documents;\r\n    @Size(min = 1, message = \"Список контактов не может быть пустым.\")\r\n    @Valid\r\n    private List<Contact> contacts;\r\n    @Size(min = 1, message = \"Список адресов не может быть пустым.\")\r\n    @Valid\r\n    private List<Address> addresses;\r\n}\r\n
+===================================================================
+diff --git a/src/main/java/person/data/dto/PersonDTO.java b/src/main/java/person/data/dto/PersonDTO.java
+--- a/src/main/java/person/data/dto/PersonDTO.java	(revision 307d23d0f79c70d5f953d4c71571b2786174ac92)
++++ b/src/main/java/person/data/dto/PersonDTO.java	(date 1745858823360)
+@@ -12,6 +12,7 @@
+ import person.data.entity.Contact;
+ import person.data.entity.IdentityDocument;
+ 
++import java.util.ArrayList;
+ import java.util.List;
+ 
+ @AllArgsConstructor
+@@ -27,11 +28,9 @@
+     @Pattern(regexp = "\\d+", message = "Паспортные данные должны состоять из цифр.")
+     private String passportData;
+     @Valid
+-    private List<IdentityDocument> documents;
+-    @Size(min = 1, message = "Список контактов не может быть пустым.")
++    private List<IdentityDocumentDTO> documents = new ArrayList<>();
+     @Valid
+-    private List<Contact> contacts;
+-    @Size(min = 1, message = "Список адресов не может быть пустым.")
++    private List<ContactDTO> contacts = new ArrayList<>();
+     @Valid
+-    private List<Address> addresses;
++    private List<AddressDTO> addresses =  new ArrayList<>();
+ }
+Index: src/main/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>spring.jpa.hibernate.ddl-auto=update\r\n\r\nspring.jpa.show-sql=true\r\n\r\nspring.jpa.properties.hibernate.format_sql=true\r\n\r\nspring.jpa.properties.hibernate.use_sql_comments=true\r\n\r\nlogging.level.org.hibernate.SQL=DEBUG\r\n\r\nlogging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE\r\n\r\nspring.liquibase.change-log=classpath:db/changelog/db.changelog-master.xml\r\n\r\nspring.liquibase.enabled=true\r\n\r\nspring.flyway.enabled=false\r\n\r\n\r\n
+===================================================================
+diff --git a/src/main/resources/application.properties b/src/main/resources/application.properties
+--- a/src/main/resources/application.properties	(revision 307d23d0f79c70d5f953d4c71571b2786174ac92)
++++ b/src/main/resources/application.properties	(date 1745860919845)
+@@ -1,19 +1,23 @@
+-spring.jpa.hibernate.ddl-auto=update
++spring.jpa.properties.hibernate.jdbc.batch_size=50
++spring.jpa.properties.hibernate.order_inserts=true
++spring.jpa.properties.hibernate.order_updates=true
+ 
++person.service.url=http://localhost:8080
++
++spring.jpa.hibernate.ddl-auto=validate
+ spring.jpa.show-sql=true
+ 
+-spring.jpa.properties.hibernate.format_sql=true
+-
+-spring.jpa.properties.hibernate.use_sql_comments=true
+-
+-logging.level.org.hibernate.SQL=DEBUG
+-
+-logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+-
+-spring.liquibase.change-log=classpath:db/changelog/db.changelog-master.xml
+-
+-spring.liquibase.enabled=true
++spring.liquibase.change-log=classpath:/db/changelog/db.changelog-master.xml
+ 
+ spring.flyway.enabled=false
+ 
++spring.datasource.url=jdbc:postgresql://localhost:5432/person_db
++spring.datasource.username=postgres
++spring.datasource.password=postgres
++spring.datasource.driver-class-name=org.postgresql.Driver
+ 
++spring.liquibase.enabled=true
++
++spring.servlet.multipart.enabled=true
++spring.servlet.multipart.max-file-size=10MB
++spring.servlet.multipart.max-request-size=10MB
+Index: src/main/java/person/data/mapper/PersonMapper.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package person.data.mapper;\r\n\r\nimport org.mapstruct.Mapper;\r\nimport person.data.dto.PersonDTO;\r\nimport person.data.entity.Person;\r\n\r\n@Mapper(componentModel = \"spring\")\r\npublic interface PersonMapper {\r\n\r\n    Person toEntity(PersonDTO personDTO);\r\n    PersonDTO toDTO(Person person);\r\n}\r\n
+===================================================================
+diff --git a/src/main/java/person/data/mapper/PersonMapper.java b/src/main/java/person/data/mapper/PersonMapper.java
+--- a/src/main/java/person/data/mapper/PersonMapper.java	(revision 307d23d0f79c70d5f953d4c71571b2786174ac92)
++++ b/src/main/java/person/data/mapper/PersonMapper.java	(date 1745858352068)
+@@ -4,7 +4,7 @@
+ import person.data.dto.PersonDTO;
+ import person.data.entity.Person;
+ 
+-@Mapper(componentModel = "spring")
++@Mapper(componentModel = "spring", uses = {IdentityDocumentMapper.class, ContactMapper.class, AddressMapper.class})
+ public interface PersonMapper {
+ 
+     Person toEntity(PersonDTO personDTO);

@@ -1,0 +1,1 @@
+Внутренняя ошибка сервера: No static resource vaccination/upload.

@@ -1,0 +1,18 @@
+Index: src/main/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>spring.jpa.hibernate.ddl-auto=update\r\n\r\nspring.jpa.show-sql=true\r\n\r\nspring.jpa.properties.hibernate.format_sql=true\r\n\r\nspring.jpa.properties.hibernate.use_sql_comments=true\r\n\r\nlogging.level.org.hibernate.SQL=DEBUG\r\n\r\nlogging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE\r\n\r\nspring.liquibase.change-log=classpath:db/changelog/db.changelog-master.xml\r\n\r\nspring.liquibase.enabled=true\r\n\r\nspring.flyway.enabled=false\r\n\r\n\r\n
+===================================================================
+diff --git a/src/main/resources/application.properties b/src/main/resources/application.properties
+--- a/src/main/resources/application.properties	(revision 307d23d0f79c70d5f953d4c71571b2786174ac92)
++++ b/src/main/resources/application.properties	(date 1745843720688)
+@@ -16,4 +16,9 @@
+ 
+ spring.flyway.enabled=false
+ 
++spring.datasource.url=jdbc:postgresql://localhost:5432/person_db
++spring.datasource.username=postgres
++spring.datasource.password=postgres
++spring.datasource.driver-class-name=org.postgresql.Driver
++
+ 

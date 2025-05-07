@@ -1,0 +1,449 @@
+POST http://localhost:8080/vaccinations/upload
+Content-Type: multipart/form-data
+Content-Length: 40
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.2.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+file=@vaccination_data.csv;type=text/csv
+
+<> 2025-04-28T231517.500.txt
+
+###
+
+POST http://localhost:8080/vaccinations/upload
+Content-Type: multipart/form-data
+Content-Length: 40
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.2.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+file=@vaccination_data.csv;type=text/csv
+
+<> 2025-04-28T222354.500.txt
+
+###
+
+POST http://localhost:8080/vaccinations/upload
+Content-Type: multipart/form-data
+Content-Length: 40
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.2.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+file=@vaccination_data.csv;type=text/csv
+
+<> 2025-04-28T222232.500.txt
+
+###
+
+POST http://localhost:8080/vaccinations/upload
+Content-Type: multipart/form-data
+Content-Length: 40
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.2.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+file=@vaccination_data.csv;type=text/csv
+
+<> 2025-04-28T222159.500.txt
+
+###
+
+POST http://localhost:8080/vaccinations/upload
+Content-Type: multipart/form-data
+Content-Length: 40
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.2.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+file=@vaccination_data.csv;type=text/csv
+
+<> 2025-04-28T222123.500.txt
+
+###
+
+POST http://localhost:8080/vaccinations/upload
+Content-Type: multipart/form-data
+Content-Length: 491
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.2.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="vaccination_data.csv"
+Content-Type: text/csv
+Иванов Иван Иванович,1234567890,2024-12-01,Спутник V,001,Городская поликлиника №1,г. Москва, ул. Ленина, д.10
+Петров Петр Петрович,0987654321,2024-12-05,КовиВак,002,Частная клиника "Здоровье",г. Санкт-Петербург, Невский пр., д.20
+--boundary--
+
+<> 2025-04-28T221956.500.txt
+
+###
+
+POST http://localhost:8080/vaccinations/upload
+Content-Type: multipart/form-data; boundary=boundary123
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.2.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+content-length: 569
+
+--boundary123
+Content-Disposition: form-data; name="file"; filename="vaccination_data.csv"
+Content-Type: text/csv
+
+< C:\Users\User2\IdeaProjects\homeworks\src\main\java\vaccination_data.csv
+--boundary123--
+
+<> 2025-04-28T221846.500.txt
+
+###
+
+POST http://localhost:8080/vaccination/upload
+Content-Type: multipart/form-data; boundary=boundary123
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.2.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+content-length: 569
+
+--boundary123
+Content-Disposition: form-data; name="file"; filename="vaccination_data.csv"
+Content-Type: text/csv
+
+< C:\Users\User2\IdeaProjects\homeworks\src\main\java\vaccination_data.csv
+--boundary123--
+
+<> 2025-04-28T221817.500.txt
+
+###
+
+GET http://localhost:8080/person?region=Москва&page=0&size=5&sort=fullName,asc
+Content-Type: application/json
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.2.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+content-length: 0
+
+<> 2025-04-28T220849.200.json
+
+###
+
+GET http://localhost:8080/person
+Content-Type: application/json
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.2.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+content-length: 0
+
+<> 2025-04-28T220714.200.json
+
+###
+
+POST http://localhost:8080/person
+Content-Type: application/json
+Content-Length: 521
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.2.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+  "fullName": "Иванов Иван",
+  "passportData": "1234567898",
+  "contacts": [
+    {
+      "type": "mobile",
+      "number": "79161234567"
+    },
+    {
+      "type": "home",
+      "number": "84951234567"
+    }
+  ],
+  "addresses": [
+    {
+      "fullAddress": "г. Москва, ул. Тверская, д.10",
+      "region": "Москва"
+    },
+    {
+      "fullAddress": "г. Санкт-Петербург, Невский проспект, д.20",
+      "region": "Санкт-Петербург"
+    }
+  ]
+}
+
+<> 2025-04-28T220500.201.json
+
+###
+
+POST http://localhost:8080/person
+Content-Type: application/json
+Content-Length: 649
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.2.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+  "fullName": "Иванов Иван",
+  "passportData": "1234567898",
+  "documents": [
+    {
+      "name": "Водительское удостоверение",
+      "number": "987654"
+    }
+  ],
+  "contacts": [
+    {
+      "type": "mobile",
+      "number": "79161234567"
+    },
+    {
+      "type": "home",
+      "number": "84951234567"
+    }
+  ],
+  "addresses": [
+    {
+      "fullAddress": "г. Москва, ул. Тверская, д.10",
+      "region": "Москва"
+    },
+    {
+      "fullAddress": "г. Санкт-Петербург, Невский проспект, д.20",
+      "region": "Санкт-Петербург"
+    }
+  ]
+}
+
+<> 2025-04-28T220448.409.txt
+
+###
+
+POST http://localhost:8080/person
+Content-Type: application/json
+Content-Length: 720
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.2.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+  "fullName": "Иванов Иван",
+  "passportData": "1234567899",
+  "documents": [
+    {
+      "name": "Паспорт",
+      "number": "1234567"
+    },
+    {
+      "name": "Водительское удостоверение",
+      "number": "987654"
+    }
+  ],
+  "contacts": [
+    {
+      "type": "mobile",
+      "number": "79161234567"
+    },
+    {
+      "type": "home",
+      "number": "84951234567"
+    }
+  ],
+  "addresses": [
+    {
+      "fullAddress": "г. Москва, ул. Тверская, д.10",
+      "region": "Москва"
+    },
+    {
+      "fullAddress": "г. Санкт-Петербург, Невский проспект, д.20",
+      "region": "Санкт-Петербург"
+    }
+  ]
+}
+
+<> 2025-04-28T220437.409.txt
+
+###
+
+POST http://localhost:8080/person
+Content-Type: application/json
+Content-Length: 720
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.2.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+  "fullName": "Иванов Иван",
+  "passportData": "1234567890",
+  "documents": [
+    {
+      "name": "Паспорт",
+      "number": "1234567"
+    },
+    {
+      "name": "Водительское удостоверение",
+      "number": "987654"
+    }
+  ],
+  "contacts": [
+    {
+      "type": "mobile",
+      "number": "79161234567"
+    },
+    {
+      "type": "home",
+      "number": "84951234567"
+    }
+  ],
+  "addresses": [
+    {
+      "fullAddress": "г. Москва, ул. Тверская, д.10",
+      "region": "Москва"
+    },
+    {
+      "fullAddress": "г. Санкт-Петербург, Невский проспект, д.20",
+      "region": "Санкт-Петербург"
+    }
+  ]
+}
+
+<> 2025-04-28T220422.409.txt
+
+###
+
+POST http://localhost:8080/person
+Content-Type: application/json
+Content-Length: 720
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.2.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+  "fullName": "Иванов Иван",
+  "passportData": "1234567890",
+  "documents": [
+    {
+      "name": "Паспорт",
+      "number": "1234567"
+    },
+    {
+      "name": "Водительское удостоверение",
+      "number": "987654"
+    }
+  ],
+  "contacts": [
+    {
+      "type": "mobile",
+      "number": "79161234567"
+    },
+    {
+      "type": "home",
+      "number": "84951234567"
+    }
+  ],
+  "addresses": [
+    {
+      "fullAddress": "г. Москва, ул. Тверская, д.10",
+      "region": "Москва"
+    },
+    {
+      "fullAddress": "г. Санкт-Петербург, Невский проспект, д.20",
+      "region": "Санкт-Петербург"
+    }
+  ]
+}
+
+<> 2025-04-28T220407.201.json
+
+###
+
+POST http://localhost:8080/person
+Content-Type: application/json
+Content-Length: 720
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.2.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+  "fullName": "Иванов Иван",
+  "passportData": "1234567890",
+  "documents": [
+    {
+      "name": "Паспорт",
+      "number": "1234567"
+    },
+    {
+      "name": "Водительское удостоверение",
+      "number": "987654"
+    }
+  ],
+  "contacts": [
+    {
+      "type": "mobile",
+      "number": "79161234567"
+    },
+    {
+      "type": "home",
+      "number": "84951234567"
+    }
+  ],
+  "addresses": [
+    {
+      "fullAddress": "г. Москва, ул. Тверская, д.10",
+      "region": "Москва"
+    },
+    {
+      "fullAddress": "г. Санкт-Петербург, Невский проспект, д.20",
+      "region": "Санкт-Петербург"
+    }
+  ]
+}
+
+<> 2025-04-28T212838.201.json
+
+###
+
+POST http://localhost:8080/person
+Content-Type: application/json
+Content-Length: 719
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.2.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+  "fullName": "Иванов Иван",
+  "passportData": "1234567890",
+  "documents": [
+    {
+      "name": "Паспорт",
+      "number": "123456"
+    },
+    {
+      "name": "Водительское удостоверение",
+      "number": "987654"
+    }
+  ],
+  "contacts": [
+    {
+      "type": "mobile",
+      "number": "79161234567"
+    },
+    {
+      "type": "home",
+      "number": "84951234567"
+    }
+  ],
+  "addresses": [
+    {
+      "fullAddress": "г. Москва, ул. Тверская, д.10",
+      "region": "Москва"
+    },
+    {
+      "fullAddress": "г. Санкт-Петербург, Невский проспект, д.20",
+      "region": "Санкт-Петербург"
+    }
+  ]
+}
+
+<> 2025-04-28T212822.409.txt
+
+###
+
